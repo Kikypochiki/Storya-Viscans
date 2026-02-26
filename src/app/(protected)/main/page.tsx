@@ -61,8 +61,8 @@ export default function MainBoard() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex justify-center font-sans">
-      <div className="w-full max-w-[1400px] flex gap-6 p-4 md:p-6 items-start">
-        <aside className="hidden md:flex flex-col w-[250px] shrink-0 sticky top-6 gap-6">
+      <div className="w-full max-w-7xl flex gap-6 p-4 md:p-6 items-start">
+        <aside className="hidden md:flex flex-col w-62.5 shrink-0 sticky top-6 gap-6">
           <Card className="rounded-2xl border-2 border-slate-200 shadow-sm">
             <CardContent className="p-6 flex flex-col gap-4">
               <div className="flex items-center gap-3 mb-2">
