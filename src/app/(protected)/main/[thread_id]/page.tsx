@@ -82,7 +82,7 @@ export default function ThreadContentPage() {
             try {
                 const { data, error } = await supabase
                     .from("threads")
-                    .select("id, title, content, created_at, author_id, image_urls, image_prices, rfs, category_id")
+                    .select("id, title, content, created_at, author_id, image_urls, image_prices, rfs, category_id, upvote_count, downvote_count")
                     .eq("id", threadId)
                     .single()
 
