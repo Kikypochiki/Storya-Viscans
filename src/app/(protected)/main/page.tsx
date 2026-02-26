@@ -18,6 +18,7 @@ export default function MainBoard() {
   const supabase = supabaseRef.current
   const router = useRouter()
   const [threads, setThreads] = useState([])
+  const [categories, setCategories] = useState([])
   const [selectedThreadId, setSelectedThreadId] = useState(null)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
@@ -46,7 +47,7 @@ export default function MainBoard() {
           await Promise.all([
             supabase
               .from("threads")
-              .select("id, title, content, created_at, author_id, category_id, image_urls, image_prices, rfs")
+              .select("id, title, content, created_at, author_id, category_id, image_urls, image_prices, rfs, upvote_count, downvote_count")
               .order("created_at", { ascending: false }),
             supabase.from("categories").select("id, name"),
           ])
@@ -56,8 +57,8 @@ export default function MainBoard() {
           return
         }
 
-        if (categoriesError) {
-          toast.error(categoriesError.message)
+        if (categoriesData) {
+          setCategories(categoriesData)
         }
 
         const threadsData = threadRows || []
@@ -181,10 +182,11 @@ export default function MainBoard() {
                       key={thread.id}
                       thread={thread}
                       categories={categoryRows}
+                      categories={categories}
                       authorName={thread.author_username}
                       onOpen={handleOpenThread}
-                      upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
-                      downvotes={thread.downvotes_count ?? thread.downvotes ?? 0}
+                      upvotes={thread.upvote_count ?? 0}
+                      downvotes={thread.downvote_count ?? 0}
                       comments={thread.comments_count ?? thread.comment_count ?? 0}
                     />
                   ))

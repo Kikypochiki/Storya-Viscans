@@ -15,6 +15,7 @@ import {
     CarouselPrevious,
 } from "@/components/ui/carousel"
 import { createClient } from "@/lib/supabase/client"
+import { updateThreadCounts, updateCommentCounts, type UpdateCounts } from "@/lib/votes"
 import { toast } from "sonner"
 import type { Comments } from "@/types"
 import { AddComment } from "../components/add-comment"
@@ -27,6 +28,8 @@ type CommentNode = {
     author_id: string
     author_username: string
     parent_id: string | null
+    upvote_count: number
+    downvote_count: number
     children: CommentNode[]
 }
 
@@ -57,6 +60,9 @@ export default function ThreadContentPage() {
     const [replyText, setReplyText] = React.useState("")
     const [submittingReply, setSubmittingReply] = React.useState(false)
     const [collapsedComments, setCollapsedComments] = React.useState<Set<string>>(new Set())
+    const [localThreadUpvotes, setLocalThreadUpvotes] = React.useState(0)
+    const [localThreadDownvotes, setLocalThreadDownvotes] = React.useState(0)
+    const [userThreadVote, setUserThreadVote] = React.useState<"up" | "down" | null>(null)
 
     React.useEffect(() => {
         let active = true
@@ -76,7 +82,7 @@ export default function ThreadContentPage() {
             try {
                 const { data, error } = await supabase
                     .from("threads")
-                    .select("id, title, content, created_at, author_id, image_urls, image_prices, rfs, category_id")
+                    .select("id, title, content, created_at, author_id, image_urls, image_prices, rfs, category_id, upvote_count, downvote_count")
                     .eq("id", threadId)
                     .single()
 
@@ -99,6 +105,11 @@ export default function ThreadContentPage() {
                 } else {
                     setThread(data)
                 }
+
+                // Initialize local vote counts
+                setLocalThreadUpvotes(data.upvote_count || 0)
+                setLocalThreadDownvotes(data.downvote_count || 0)
+
             } catch (err: any) {
                 if (active) {
                     setThread(null)
@@ -181,6 +192,8 @@ export default function ThreadContentPage() {
                     created_at,
                     author_id,
                     parent_id,
+                    upvote_count,
+                    downvote_count,
                     profiles!comments_author_id_fkey(username)
                 `)
                 .eq("thread_id", threadId)
@@ -198,6 +211,8 @@ export default function ThreadContentPage() {
                 author_id: row.author_id,
                 parent_id: row.parent_id ?? null,
                 author_username: row.profiles?.username ?? "unknown",
+                upvote_count: row.upvote_count ?? 0,
+                downvote_count: row.downvote_count ?? 0,
                 children: [],
             }))
 
@@ -283,6 +298,110 @@ export default function ThreadContentPage() {
         })
     }, [])
 
+    const handleThreadVote = async (type: "up" | "down") => {
+        const oldUp = localThreadUpvotes
+        const oldDown = localThreadDownvotes
+        const oldVote = userThreadVote
+
+        let newUp = oldUp
+        let newDown = oldDown
+        let newVote: "up" | "down" | null = type
+
+        if (oldVote === type) {
+            if (type === "up") newUp = Math.max(0, oldUp - 1)
+            else newDown = Math.max(0, oldDown - 1)
+            newVote = null
+        } else if (oldVote === null) {
+            if (type === "up") newUp = oldUp + 1
+            else newDown = oldDown + 1
+        } else {
+            if (type === "up") {
+                newUp = oldUp + 1
+                newDown = Math.max(0, oldDown - 1)
+            } else {
+                newDown = oldDown + 1
+                newUp = Math.max(0, oldUp - 1)
+            }
+        }
+
+        try {
+            setLocalThreadUpvotes(newUp)
+            setLocalThreadDownvotes(newDown)
+            setUserThreadVote(newVote)
+
+            const updates: UpdateCounts = {}
+            if (newUp !== oldUp) updates.upvote_count = newUp
+            if (newDown !== oldDown) updates.downvote_count = newDown
+
+            if (Object.keys(updates).length > 0) {
+                await updateThreadCounts(threadId!, updates)
+            }
+        } catch (error: any) {
+            toast.error("Failed to vote: " + error.message)
+            setLocalThreadUpvotes(oldUp)
+            setLocalThreadDownvotes(oldDown)
+            setUserThreadVote(oldVote)
+        }
+    }
+
+    const handleCommentVote = async (commentId: string, type: "up" | "down", currentUp: number, currentDown: number, userCommentVote: "up" | "down" | null) => {
+        const oldVote = userCommentVote
+        let newUp = currentUp
+        let newDown = currentDown
+        let newVote: "up" | "down" | null = type
+
+        if (oldVote === type) {
+            if (type === "up") newUp = Math.max(0, currentUp - 1)
+            else newDown = Math.max(0, currentDown - 1)
+            newVote = null
+        } else if (oldVote === null) {
+            if (type === "up") newUp = currentUp + 1
+            else newDown = currentDown + 1
+        } else {
+            if (type === "up") {
+                newUp = currentUp + 1
+                newDown = Math.max(0, currentDown - 1)
+            } else {
+                newDown = currentDown + 1
+                newUp = Math.max(0, currentUp - 1)
+            }
+        }
+
+        try {
+            // Optimistic update
+            setComments((prev) => {
+                const updateNode = (nodes: CommentNode[]): CommentNode[] => {
+                    return nodes.map((node) => {
+                        if (node.id === commentId) {
+                            return {
+                                ...node,
+                                upvote_count: newUp,
+                                downvote_count: newDown,
+                                // Note: We need a way to store userCommentVote per comment if we want to show active state
+                            }
+                        }
+                        if (node.children.length > 0) {
+                            return { ...node, children: updateNode(node.children) }
+                        }
+                        return node
+                    })
+                }
+                return updateNode(prev)
+            })
+
+            const updates: UpdateCounts = {}
+            if (newUp !== currentUp) updates.upvote_count = newUp
+            if (newDown !== currentDown) updates.downvote_count = newDown
+
+            if (Object.keys(updates).length > 0) {
+                await updateCommentCounts(commentId, updates)
+            }
+        } catch (error: any) {
+            toast.error("Failed to vote: " + error.message)
+            fetchComments()
+        }
+    }
+
     const renderComments = (list: CommentNode[], depth = 0): React.ReactNode => (
         <div className="space-y-3">
             {list.map((comment) => {
@@ -304,6 +423,25 @@ export default function ThreadContentPage() {
                                 @{comment.author_username} •{" "}
                                 {comment.created_at ? new Date(comment.created_at).toLocaleString() : ""}
                             </p>
+
+                            <div className="mt-3 flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors active:scale-110"
+                                    onClick={() => handleCommentVote(comment.id, "up", comment.upvote_count, comment.downvote_count, null)}
+                                >
+                                    <ThumbsUp className="h-3.5 w-3.5" />
+                                    {formatCount(comment.upvote_count)}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors active:scale-110"
+                                    onClick={() => handleCommentVote(comment.id, "down", comment.upvote_count, comment.downvote_count, null)}
+                                >
+                                    <ThumbsDown className="h-3.5 w-3.5" />
+                                    {formatCount(comment.downvote_count)}
+                                </button>
+                            </div>
 
                             <div className="mt-2 flex items-center gap-2">
                                 {hasChildren && (
@@ -465,12 +603,22 @@ export default function ThreadContentPage() {
                                         </div>
                                     </ScrollArea>
                                     <div className="flex items-center gap-8 pt-6 border-t border-secondary/30">
-                                        <button type="button" className="inline-flex items-center gap-2.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
-                                            <ThumbsUp className="h-4 w-4" />
+                                        <button
+                                            type="button"
+                                            className={`inline-flex items-center gap-2.5 text-xs transition-colors active:scale-105 ${userThreadVote === "up" ? "text-primary font-bold" : "text-gray-500 hover:text-gray-800"}`}
+                                            onClick={() => handleThreadVote("up")}
+                                        >
+                                            <ThumbsUp className={`h-4 w-4 ${userThreadVote === "up" ? "fill-primary" : ""}`} />
+                                            {formatCount(localThreadUpvotes)} Upvotes
                                         </button>
 
-                                        <button type="button" className="inline-flex items-center gap-2.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
-                                            <ThumbsDown className="h-4 w-4" />
+                                        <button
+                                            type="button"
+                                            className={`inline-flex items-center gap-2.5 text-xs transition-colors active:scale-105 ${userThreadVote === "down" ? "text-destructive font-bold" : "text-gray-500 hover:text-gray-800"}`}
+                                            onClick={() => handleThreadVote("down")}
+                                        >
+                                            <ThumbsDown className={`h-4 w-4 ${userThreadVote === "down" ? "fill-destructive" : ""}`} />
+                                            {formatCount(localThreadDownvotes)} Downvotes
                                         </button>
 
                                         <AddComment threadId={threadId!} onSuccess={fetchComments} customTrigger={
