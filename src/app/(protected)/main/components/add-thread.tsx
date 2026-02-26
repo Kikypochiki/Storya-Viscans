@@ -94,18 +94,19 @@ export function AddThread() {
         const filePath = `threads/${authData.user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
 
         const { error: uploadError } = await supabase.storage
-          .from("threads")
+          .from("thread_images")
           .upload(filePath, file, {
             upsert: true,
             contentType: file.type || "image/jpeg",
           })
 
         if (uploadError) {
-          toast.error(`Error uploading image: ${uploadError.message}`)
+          console.error("Storage Upload Error Detail:", uploadError)
+          toast.error(`Error uploading image: ${uploadError.message}. Check console for details.`)
           continue
         }
 
-        const { data: publicData } = supabase.storage.from("threads").getPublicUrl(filePath)
+        const { data: publicData } = supabase.storage.from("thread_images").getPublicUrl(filePath)
         uploadedUrls.push(publicData.publicUrl)
       }
 
@@ -119,7 +120,6 @@ export function AddThread() {
         content: cleanContent,
         author_id: profile.id,
         category_id: categoryId,
-        image_url: uploadedUrls.length > 0 ? uploadedUrls[0] : null, // Fallback for single field
         image_urls: uploadedUrls, // Assuming array support
       })
 

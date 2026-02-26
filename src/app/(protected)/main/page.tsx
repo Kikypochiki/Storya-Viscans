@@ -42,7 +42,7 @@ export default function MainBoard() {
       try {
         const { data: threadRows, error: threadsError } = await supabase
           .from("threads")
-          .select("id, title, content, created_at, author_id, category_id")
+          .select("id, title, content, created_at, author_id, category_id, image_urls")
           .order("created_at", { ascending: false })
 
         if (threadsError) {

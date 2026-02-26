@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 // import { ThumbsUp, ThumbsDown } from "lucide-react"
 import type { Comments } from "@/types"
+import Image from "next/image"
 
 export default function ThreadContentPage() {
     const supabaseRef = React.useRef(createClient())
@@ -49,7 +50,7 @@ export default function ThreadContentPage() {
             try {
                 const { data, error } = await supabase
                     .from("threads")
-                    .select("id, title, content, created_at, author_id")
+                    .select("id, title, content, created_at, author_id, image_urls")
                     .eq("id", threadId)
                     .single()
 
@@ -232,8 +233,25 @@ export default function ThreadContentPage() {
                             <p className="text-sm text-secondary-foreground">{errorText}</p>
                         ) : (
                             <ScrollArea className="max-h-[calc(100vh-16rem)] pr-2">
-                                <div className="whitespace-pre-wrap wrap-break-words leading-7 text-sm md:text-base text-foreground">
-                                    {thread?.content}
+                                <div className="space-y-6">
+                                    <div className="whitespace-pre-wrap wrap-break-words leading-7 text-sm md:text-base text-foreground">
+                                        {thread?.content}
+                                    </div>
+
+                                    {thread?.image_urls && thread.image_urls.length > 0 && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                            {thread.image_urls.map((url: string, idx: number) => (
+                                                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-primary/10 bg-secondary/10 group">
+                                                    <Image
+                                                        src={url}
+                                                        alt={`${thread.title} - image ${idx + 1}`}
+                                                        fill
+                                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </ScrollArea>
                         )}
