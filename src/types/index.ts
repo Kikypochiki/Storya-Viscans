@@ -14,9 +14,12 @@ export type Threads = {
     title: string;
     content: string;
     image_url: string | null;
+    image_urls: string[] | null;
+    image_prices: number[] | null;
+    rfs: string | null;
     upvote_count: number;
     downvote_count: number;
-    created_at: string;                                 
+    created_at: string;
 }
 export type Categories = {
     id: string;
