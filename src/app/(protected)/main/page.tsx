@@ -2,15 +2,13 @@
 "use client"
 
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import { Search, Filter } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Search } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { AddThread } from "./components/add-thread"
 import { toast } from "sonner"
 import { ThreadCard } from "./components/thread-card"
-import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ProfileCard } from "./components/profile-card"
@@ -94,64 +92,70 @@ export default function MainBoard() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center">
+    <div className="min-h-screen flex justify-center bg-linear-to-b from-secondary/20 via-background to-background">
       <div className="w-full max-w-7xl px-4 md:px-6 py-4 md:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
-          <main className="min-w-0 flex flex-col gap-4">
+          <main className="min-w-0 flex flex-col gap-4 min-h-0 lg:h-[calc(100vh-3.5rem)]">
             {/* Top bar */}
-            <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <section className="rounded-xl border border-primary/20 bg-card/80 backdrop-blur-sm p-4 md:p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between shadow-sm">
               <div>
-                <h1 className="text-xl font-semibold tracking-tight">Threads</h1>
-                <p className="text-sm text-muted-foreground">Browse and join discussions</p>
+                <h1 className="text-2xl font-bold tracking-tight text-primary">Threads</h1>
+                <p className="text-sm text-secondary-foreground/90">
+                  Browse and join discussions
+                </p>
               </div>
               <AddThread />
             </section>
 
             {/* Search */}
             <section className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary-foreground/80" />
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search threads..."
-                className="pl-9"
+                className="pl-9 border-secondary/60 bg-secondary/20 focus-visible:ring-primary/40"
               />
             </section>
 
             {/* Thread list */}
-            <ScrollArea className="h-[calc(100vh-12rem)] pr-2">
-              <div className="flex flex-col gap-3">
-                {loading ? (
-                  <Card>
-                    <CardContent className="p-4 text-sm text-muted-foreground">
-                      Loading threads...
-                    </CardContent>
-                  </Card>
-                ) : filteredThreads.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-4 text-sm text-muted-foreground">
-                      No threads found.
-                    </CardContent>
-                  </Card>
-                ) : (
-                  filteredThreads.map((thread) => (
-                    <ThreadCard
-                      key={thread.id}
-                      thread={thread}
-                      authorName={thread.author_username}
-                      onOpen={handleOpenThread}
-                      upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
-                      downvotes={thread.downvotes_count ?? thread.downvotes ?? 0}
-                      comments={thread.comments_count ?? thread.comment_count ?? 0}
-                    />
-                  ))
-                )}
-              </div>
-            </ScrollArea>
+            <div className="min-h-0 flex-1">
+              <ScrollArea className="h-full pr-2">
+                <div className="flex flex-col gap-3 pb-2">
+                  {loading ? (
+                    <Card className="border-secondary/50 bg-secondary/20">
+                      <CardContent className="p-4 text-sm text-secondary-foreground">
+                        Loading threads...
+                      </CardContent>
+                    </Card>
+                  ) : filteredThreads.length === 0 ? (
+                    <Card className="border-secondary/50 bg-secondary/20">
+                      <CardContent className="p-4 text-sm text-secondary-foreground">
+                        No threads found.
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    filteredThreads.map((thread) => (
+                      <ThreadCard
+                        key={thread.id}
+                        thread={thread}
+                        authorName={thread.author_username}
+                        onOpen={handleOpenThread}
+                        upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
+                        downvotes={thread.downvotes_count ?? thread.downvotes ?? 0}
+                        comments={thread.comments_count ?? thread.comment_count ?? 0}
+                      />
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
           </main>
 
-          <aside className="hidden lg:block sticky top-6">
-            <ProfileCard />
+          <aside className="hidden lg:block sticky top-6 self-start">
+            <div className="rounded-xl border border-primary/20 bg-card/80 backdrop-blur-sm p-3 shadow-sm">
+              <ProfileCard />
+            </div>
           </aside>
         </div>
       </div>

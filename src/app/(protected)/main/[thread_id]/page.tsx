@@ -95,40 +95,46 @@ export default function ThreadContentPage() {
     : ""
 
   return (
-    <div className="min-h-screen flex justify-center">
+    <div className="min-h-screen flex justify-center bg-linear-to-b from-secondary/20 via-background to-background">
       <div className="w-full max-w-4xl px-4 py-4 md:px-6 md:py-6 flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+        <section className="rounded-xl border border-primary/20 bg-card/80 backdrop-blur-sm p-3 md:p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              aria-label="Back"
+              className="text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
 
-          <div className="min-w-0">
-            <h1 className="text-lg font-semibold truncate">
-              {loading ? "Loading thread..." : thread?.title || "Thread"}
-            </h1>
-            {!loading && !errorText ? (
-              <p className="text-xs text-muted-foreground truncate">
-                @{authorUsername} {createdAt ? `• ${createdAt}` : ""}
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary/80">
+                Thread
               </p>
-            ) : null}
+              <h1 className="text-lg md:text-xl font-bold truncate text-primary">
+                {loading ? "Loading thread..." : thread?.title || "Thread"}
+              </h1>
+              {!loading && !errorText ? (
+                <p className="text-xs text-secondary-foreground/90 truncate">
+                  @{authorUsername} {createdAt ? `• ${createdAt}` : ""}
+                </p>
+              ) : null}
+            </div>
           </div>
-        </div>
+        </section>
 
-        <Card>
+        <Card className="border-secondary/50 bg-card/95 shadow-sm">
           <CardContent className="p-4 md:p-6">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading content...</p>
+              <p className="text-sm text-secondary-foreground">Loading content...</p>
             ) : errorText ? (
-              <p className="text-sm text-muted-foreground">{errorText}</p>
+              <p className="text-sm text-secondary-foreground">{errorText}</p>
             ) : (
               <ScrollArea className="max-h-[calc(100vh-16rem)] pr-2">
-                <div className="whitespace-pre-wrap break-words leading-7 text-sm md:text-base">
+                <div className="whitespace-pre-wrap break-words leading-7 text-sm md:text-base text-foreground">
                   {thread?.content}
                 </div>
               </ScrollArea>
