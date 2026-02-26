@@ -419,7 +419,7 @@ export default function ThreadContentPage() {
                                                                         sizes="(max-width: 768px) 100vw, 900px"
                                                                     />
                                                                     {thread.category_name?.toLowerCase() === "buy and sell" && thread.image_prices?.[idx] !== undefined && (
-                                                                        <div className="absolute top-4 right-4 bg-[#3b82f6] text-white px-4 py-1.5 rounded-full text-base font-bold shadow-lg">
+                                                                        <div className="absolute top-4 right-4 bg-primary text-white px-4 py-1.5 rounded-full text-base font-bold shadow-lg">
                                                                             ₱{thread.image_prices[idx]}
                                                                         </div>
                                                                     )}
@@ -427,7 +427,7 @@ export default function ThreadContentPage() {
 
                                                                 {thread.category_name?.toLowerCase() === "buy and sell" && (
                                                                     <Button
-                                                                        className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white h-11 font-bold shadow-md transition-all active:scale-[0.98] rounded-xl"
+                                                                        className="w-full bg-primary hover:bg-primary/90 text-white h-11 font-bold shadow-md transition-all active:scale-[0.98] rounded-xl"
                                                                         onClick={() => toast.info(`Sending offer...`)}
                                                                     >
                                                                         Send Offer
@@ -449,8 +449,8 @@ export default function ThreadContentPage() {
                                     )}
 
                                     {thread?.category_name?.toLowerCase() === "buy and sell" && thread?.rfs && (
-                                        <div className="mb-6 rounded-lg bg-[#eef5ff] border-l-4 border-[#3b82f6] p-4 shadow-sm">
-                                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[#3b82f6] mb-1">
+                                        <div className="mb-6 rounded-lg bg-[#eef5ff] border-l-4 border-primary p-4 shadow-sm">
+                                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">
                                                 REASON FOR SELLING (RFS)
                                             </h3>
                                             <p className="text-sm font-medium text-gray-700">
@@ -460,19 +460,17 @@ export default function ThreadContentPage() {
                                     )}
 
                                     <ScrollArea className="max-h-[calc(100vh-16rem)] pr-2 mb-4">
-                                        <div className="whitespace-pre-wrap warp-break-words leading-7 text-sm md:text-base text-foreground">
+                                        <div className="min-w-0 max-w-full whitespace-pre-wrap break-all leading-7 text-sm md:text-base text-foreground">
                                             {thread?.content}
                                         </div>
                                     </ScrollArea>
                                     <div className="flex items-center gap-8 pt-6 border-t border-secondary/30">
                                         <button type="button" className="inline-flex items-center gap-2.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
                                             <ThumbsUp className="h-4 w-4" />
-                                            Upvote
                                         </button>
 
                                         <button type="button" className="inline-flex items-center gap-2.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
                                             <ThumbsDown className="h-4 w-4" />
-                                            Downvote
                                         </button>
 
                                         <AddComment threadId={threadId!} onSuccess={fetchComments} customTrigger={

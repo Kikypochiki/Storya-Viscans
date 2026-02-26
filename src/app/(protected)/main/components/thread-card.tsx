@@ -25,6 +25,7 @@ type ThreadCardProps = {
     image_urls?: string[]
     image_prices?: number[] | null
     category_id?: string | number | null
+    category_name?: string | null
   }
   categories?: CategoryRow[]
   onOpen?: (id: string) => void
@@ -56,7 +57,7 @@ export function ThreadCard({
       ? categories.find((c) => String(c.id) === String(thread.category_id))
       : undefined
 
-  const categoryLabel = category?.name || null
+  const categoryLabel = thread.category_name || category?.name || null
 
   useEffect(() => {
     let active = true
@@ -96,16 +97,18 @@ export function ThreadCard({
       className="cursor-pointer overflow-hidden p-0 transition-shadow hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <CardContent className="p-3">
-        <h2 className="truncate text-sm font-semibold text-primary">{thread.title}</h2>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">{authorName || "unknown"}</p>
-
-        {categoryLabel && (
-          <div className="mt-2">
-            <Badge variant="secondary" className="text-[10px]">
+        <h1 className="truncate text-xl font-semibold text-primary">{thread.title}</h1>
+        <div className="mt-0.5 flex items-center  gap-2">
+          <p className="truncate text-xs text-muted-foreground">by {authorName || "unknown"}</p>
+          {categoryLabel && (
+            <Badge
+              variant="secondary"
+              className="inline-flex h-5 items-center rounded-full px-2.5 text-[10px] font-medium tracking-wide text-secondary-foreground bg-secondary/70 border border-border/60 flex-shrink-0"
+            >
               {categoryLabel}
             </Badge>
-          </div>
-        )}
+          )}
+        </div>
 
         {hasImages && (
           <div className="relative mt-3 w-full aspect-video overflow-hidden rounded-md border border-[#3e3f40]">
@@ -133,7 +136,7 @@ export function ThreadCard({
         {categoryLabel?.toLowerCase() === "buy and sell" && (
           <Button
             size="sm"
-            className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs transition-all active:scale-95"
+            className="w-full mt-3 bg-primary text-white h-8 text-xs transition-all active:scale-95"
             onClick={(e) => {
               e.stopPropagation()
               toast.info("Sending offer feature coming soon!")
