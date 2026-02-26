@@ -17,8 +17,14 @@ import { MessageSquare } from "lucide-react"
 
 export function AddComment({
   threadId,
+  parentId = null,
+  buttonLabel = "Add Comment",
+  onSuccess,
 }: {
   threadId: string
+  parentId?: string | null
+  buttonLabel?: string
+  onSuccess?: () => void
 }) {
   const [open, setOpen] = React.useState(false)
   const [content, setContent] = React.useState("")
@@ -57,14 +63,16 @@ export function AddComment({
         content: content.trim(),
         thread_id: threadId,
         author_id: profileRow.id,
+        parent_id: parentId, // NEW
       })
 
       if (error) {
         toast.error("Failed to add comment: " + error.message)
       } else {
-        toast.success("Comment added!")
+        toast.success(parentId ? "Reply added!" : "Comment added!")
         setContent("")
         setOpen(false)
+        onSuccess?.() // NEW
       }
     } finally {
       setSubmitting(false)
@@ -76,7 +84,7 @@ export function AddComment({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <MessageSquare className="mr-2" size={16} />
-          Add Comment
+          {buttonLabel}
         </Button>
       </DialogTrigger>
       <DialogContent>
