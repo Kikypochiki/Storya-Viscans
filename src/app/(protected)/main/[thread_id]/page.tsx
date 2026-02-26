@@ -57,7 +57,6 @@ export default function ThreadContentPage() {
     const [replyText, setReplyText] = React.useState("")
     const [submittingReply, setSubmittingReply] = React.useState(false)
     const [collapsedComments, setCollapsedComments] = React.useState<Set<string>>(new Set())
-    const [showAllImages, setShowAllImages] = React.useState(false)
 
     React.useEffect(() => {
         let active = true
