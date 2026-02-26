@@ -24,3 +24,12 @@ export type Categories = {
     description: string | null;
     created_at: string;
 }
+export type Comments = {
+    id: string;
+    author_id: string;
+    thread_id: string;
+    parent_id: string | null;
+    content: string;
+    upvote_count: number;
+    downvote_count: number;
+}
