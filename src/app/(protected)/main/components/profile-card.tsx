@@ -66,26 +66,34 @@ export function ProfileCard() {
   }
 
   return (
-    <div className="space-y-2">
-      <Card className="rounded-xl border bg-card text-card-foreground shadow-sm">
-        <CardContent className="px-3 py-2.5 flex items-center gap-3">
-          <Avatar className="h-10 w-10 shrink-0 ring-1 ring-border">
+    <div className="space-y-3">
+      <div className="px-1">
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+          Account
+        </p>
+      </div>
+
+      <Card className="rounded-xl border border-primary/20 bg-card/95 text-card-foreground shadow-sm backdrop-blur">
+        <CardContent className="px-3 py-3 flex items-center gap-3">
+          <Avatar className="h-10 w-10 shrink-0 ring-2 ring-secondary/60">
             <AvatarImage src={avatarUrl} alt={username} />
-            <AvatarFallback className="bg-muted text-muted-foreground">
+            <AvatarFallback className="bg-secondary text-secondary-foreground">
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
 
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold leading-tight truncate">{username}</p>
-            <p className="text-xs text-muted-foreground truncate">Profile</p>
+            <p className="text-sm font-semibold leading-tight truncate text-primary">
+              {username}
+            </p>
+            <p className="text-xs text-secondary-foreground/80 truncate">Profile</p>
           </div>
 
           <Button
             variant="ghost"
             size="icon"
             onClick={handleLogoutClick}
-            className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
             title="Log out"
           >
             <LogOut className="h-4 w-4" />
@@ -94,9 +102,9 @@ export function ProfileCard() {
       </Card>
 
       {showLogoutAlert && (
-        <Alert>
-          <AlertTitle>Log out?</AlertTitle>
-          <AlertDescription>
+        <Alert className="border-primary/20 bg-secondary/30">
+          <AlertTitle className="text-primary">Log out?</AlertTitle>
+          <AlertDescription className="text-secondary-foreground/90">
             You’ll be signed out of your account.
           </AlertDescription>
           <div className="mt-3 flex items-center gap-2">
@@ -106,6 +114,7 @@ export function ProfileCard() {
             <Button
               variant="outline"
               size="sm"
+              className="border-secondary bg-secondary/40 text-secondary-foreground hover:bg-secondary"
               onClick={() => setShowLogoutAlert(false)}
             >
               Cancel
@@ -115,7 +124,7 @@ export function ProfileCard() {
       )}
 
       {logoutError && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="border-destructive/70">
           <AlertTitle>Logout failed</AlertTitle>
           <AlertDescription>{logoutError}</AlertDescription>
         </Alert>
