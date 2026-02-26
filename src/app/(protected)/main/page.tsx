@@ -22,9 +22,11 @@ export default function MainBoard() {
   const [selectedThreadId, setSelectedThreadId] = useState(null)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
+  const [categoryRows, setCategoryRows] = useState([])
+
   // selectedCategories: empty set = show all, otherwise filter by these IDs
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set())
-
+  
   // Listen for category filter events dispatched by CategoryFilter in the sidebar
   useEffect(() => {
     const handler = (e: CustomEvent) => {
@@ -80,6 +82,10 @@ export default function MainBoard() {
         }
 
         if (!active) return
+
+        // IMPORTANT: populate categories used by <ThreadCard />
+        setCategoryRows(categoriesData || [])
+
         setThreads(
           threadsData.map((t) => ({
             ...t,
@@ -109,7 +115,7 @@ export default function MainBoard() {
 
     // Apply category filter (empty set = show all)
     if (selectedCategories.size > 0) {
-      result = result.filter((t) => selectedCategories.has(t.category_id))
+      result = result.filter((t) => selectedCategories.has(String(t.category_id)))
     }
 
     // Apply search filter
@@ -175,6 +181,7 @@ export default function MainBoard() {
                     <ThreadCard
                       key={thread.id}
                       thread={thread}
+                      categories={categoryRows}
                       categories={categories}
                       authorName={thread.author_username}
                       onOpen={handleOpenThread}
