@@ -46,7 +46,7 @@ export function LoginForm({
       toast.error(error.message)
     } else {
       toast.success("Logged in successfully!")
-      setTimeout(() => {router.push("/")}, 1000)
+      setTimeout(() => {router.push("/main")}, 1000)
     }
   }
   return (
