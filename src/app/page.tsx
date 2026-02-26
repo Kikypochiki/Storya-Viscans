@@ -122,7 +122,7 @@ export default function LandingPage() {
               fontFamily: "var(--font-serif)",
             }}
           >
-            <a href="/signup">Signup</a>
+            <a href="/sign-up">Signup</a>
           </Button>
         </div>
       </div>

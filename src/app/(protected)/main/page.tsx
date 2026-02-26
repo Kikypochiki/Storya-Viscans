@@ -40,10 +40,14 @@ export default function MainBoard() {
     const loadThreads = async () => {
       setLoading(true)
       try {
-        const { data: threadRows, error: threadsError } = await supabase
-          .from("threads")
-          .select("id, title, content, created_at, author_id, category_id, image_urls")
-          .order("created_at", { ascending: false })
+        const [{ data: threadRows, error: threadsError }, { data: categoriesData, error: categoriesError }] =
+          await Promise.all([
+            supabase
+              .from("threads")
+              .select("id, title, content, created_at, author_id, category_id, image_urls, image_prices, rfs")
+              .order("created_at", { ascending: false }),
+            supabase.from("categories").select("id, name"),
+          ])
 
         if (threadsError) {
           toast.error(threadsError.message)

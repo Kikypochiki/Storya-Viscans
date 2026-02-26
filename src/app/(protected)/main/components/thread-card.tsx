@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react"
 import { MessageCircle, ThumbsDown, ThumbsUp, ImageIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/client"
 
@@ -21,6 +23,7 @@ type ThreadCardProps = {
     title: string
     content: string
     image_urls?: string[]
+    image_prices?: number[] | null
     category_id?: string | number | null
   }
   categories?: CategoryRow[]
@@ -119,7 +122,25 @@ export function ThreadCard({
                 +{thread.image_urls!.length - 1}
               </div>
             )}
+            {categoryLabel?.toLowerCase() === "buy and sell" && thread.image_prices?.[0] !== undefined && (
+              <div className="absolute bottom-2 left-2 bg-green-600/90 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
+                ₱{thread.image_prices[0]}
+              </div>
+            )}
           </div>
+        )}
+
+        {categoryLabel?.toLowerCase() === "buy and sell" && (
+          <Button
+            size="sm"
+            className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs transition-all active:scale-95"
+            onClick={(e) => {
+              e.stopPropagation()
+              toast.info("Sending offer feature coming soon!")
+            }}
+          >
+            Send Offer
+          </Button>
         )}
 
         <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">

@@ -20,11 +20,13 @@ export function AddComment({
   parentId = null,
   buttonLabel = "Add Comment",
   onSuccess,
+  customTrigger,
 }: {
   threadId: string
   parentId?: string | null
   buttonLabel?: string
   onSuccess?: () => void
+  customTrigger?: React.ReactNode
 }) {
   const [open, setOpen] = React.useState(false)
   const [content, setContent] = React.useState("")
@@ -82,10 +84,12 @@ export function AddComment({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <MessageSquare className="mr-2" size={16} />
-          {buttonLabel}
-        </Button>
+        {customTrigger || (
+          <Button variant="outline" size="sm">
+            <MessageSquare className="mr-2" size={16} />
+            {buttonLabel}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
