@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/client"
+import { updateThreadCounts } from "@/lib/votes"
 
 function formatCount(n: number) {
   if (!n) return "0"
@@ -48,6 +49,9 @@ export function ThreadCard({
   const supabase = supabaseRef.current
 
   const [commentCount, setCommentCount] = useState<number>(comments)
+  const [localUpvotes, setLocalUpvotes] = useState<number>(upvotes)
+  const [localDownvotes, setLocalDownvotes] = useState<number>(downvotes)
+  const [userVote, setUserVote] = useState<"up" | "down" | null>(null)
 
   const open = () => onOpen?.(thread.id)
   const hasImages = !!thread.image_urls?.length
@@ -82,6 +86,63 @@ export function ThreadCard({
   useEffect(() => {
     setCommentCount(comments)
   }, [comments])
+
+  useEffect(() => {
+    setLocalUpvotes(upvotes)
+  }, [upvotes])
+
+  useEffect(() => {
+    setLocalDownvotes(downvotes)
+  }, [downvotes])
+
+  const handleVote = async (type: "up" | "down") => {
+    const oldUp = localUpvotes
+    const oldDown = localDownvotes
+    const oldVote = userVote
+
+    let newUp = oldUp
+    let newDown = oldDown
+    let newVote: "up" | "down" | null = type
+
+    if (oldVote === type) {
+      // Toggle off
+      if (type === "up") newUp = Math.max(0, oldUp - 1)
+      else newDown = Math.max(0, oldDown - 1)
+      newVote = null
+    } else if (oldVote === null) {
+      // New vote
+      if (type === "up") newUp = oldUp + 1
+      else newDown = oldDown + 1
+    } else {
+      // Switch vote
+      if (type === "up") {
+        newUp = oldUp + 1
+        newDown = Math.max(0, oldDown - 1)
+      } else {
+        newDown = oldDown + 1
+        newUp = Math.max(0, oldUp - 1)
+      }
+    }
+
+    try {
+      setLocalUpvotes(newUp)
+      setLocalDownvotes(newDown)
+      setUserVote(newVote)
+
+      const updates: any = {}
+      if (newUp !== oldUp) updates.upvote_count = newUp
+      if (newDown !== oldDown) updates.downvote_count = newDown
+
+      if (Object.keys(updates).length > 0) {
+        await updateThreadCounts(thread.id, updates)
+      }
+    } catch (error: any) {
+      toast.error("Failed to vote: " + error.message)
+      setLocalUpvotes(oldUp)
+      setLocalDownvotes(oldDown)
+      setUserVote(oldVote)
+    }
+  }
 
   return (
     <Card
@@ -156,14 +217,28 @@ export function ThreadCard({
         )}
 
         <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <ThumbsUp className="h-3.5 w-3.5" />
-            {formatCount(upvotes)}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <ThumbsDown className="h-3.5 w-3.5" />
-            {formatCount(downvotes)}
-          </span>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 hover:text-primary transition-colors transition-all active:scale-110"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleVote("up")
+            }}
+          >
+            <ThumbsUp className={`h-3.5 w-3.5 ${userVote === "up" ? "text-primary fill-primary" : ""}`} />
+            {formatCount(localUpvotes)}
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 hover:text-destructive transition-colors transition-all active:scale-110"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleVote("down")
+            }}
+          >
+            <ThumbsDown className={`h-3.5 w-3.5 ${userVote === "down" ? "text-destructive fill-destructive" : ""}`} />
+            {formatCount(localDownvotes)}
+          </button>
           <span className="inline-flex items-center gap-1">
             <MessageCircle className="h-3.5 w-3.5" />
             {formatCount(commentCount)}
