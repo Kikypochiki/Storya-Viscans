@@ -1,71 +1,71 @@
 // @ts-nocheck
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect } from "react"
-import { Menu, X } from "lucide-react"
+import { Menu, Search, X } from "lucide-react"
 import { ProfileCard } from "./components/profile-card"
 import { CategoryFilter } from "./components/category-filter"
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-    const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
-    // Close on Escape key
-    useEffect(() => {
-        const handleKey = (e: KeyboardEvent) => {
-            if (e.key === "Escape") setIsOpen(false)
-        }
-        window.addEventListener("keydown", handleKey)
-        return () => window.removeEventListener("keydown", handleKey)
-    }, [])
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false)
+    }
+    window.addEventListener("keydown", handleKey)
+    return () => window.removeEventListener("keydown", handleKey)
+  }, [])
 
-    return (
-        <div className="flex min-h-screen">
-            {/* Left aside */}
-            <aside
-                className="
-                    flex-shrink-0 overflow-hidden
-                    border-r border-primary/20
-                    bg-card/95 backdrop-blur-md
-                    transition-all duration-300 ease-in-out
-                    flex flex-col
-                "
-                style={{ width: isOpen ? "280px" : "0px" }}
-                aria-hidden={!isOpen}
-            >
-                {/* Aside body */}
-                <div className="flex-1 overflow-y-auto p-4 min-w-[280px]">
-                    <ProfileCard />
-                    <CategoryFilter />
-                </div>
-            </aside>
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Fixed header (Reddit-like) */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-12 border-b border-primary/20 bg-background/95 backdrop-blur">
+        <div className="h-full px-3 md:px-4 flex items-center gap-3">
+          <button
+            onClick={() => setIsOpen((prev) => !prev)}
+            aria-label={isOpen ? "Close profile menu" : "Open profile menu"}
+            className="h-8 w-8 shrink-0 rounded-md border border-primary/25 bg-card/80 text-primary grid place-items-center"
+          >
+            {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
 
-            {/* Main content */}
-            <div className="flex-1 min-w-0 relative">
-                {/* Hamburger button — fixed to the top-left of the content area */}
-                <button
-                    onClick={() => setIsOpen((prev) => !prev)}
-                    aria-label={isOpen ? "Close profile menu" : "Open profile menu"}
-                    className="
-                        fixed top-4 left-4 z-50
-                        flex items-center justify-center
-                        h-10 w-10 rounded-xl
-                        border border-primary/25
-                        bg-card/90 backdrop-blur
-                        text-primary shadow-md
-                        transition-all duration-200
-                        hover:bg-secondary hover:border-primary/50 hover:scale-105
-                        active:scale-95
-                    "
-                    style={{
-                        left: isOpen ? "calc(280px + 1rem)" : "1rem",
-                        transition: "left 0.3s ease-in-out, background-color 0.2s, border-color 0.2s, transform 0.2s",
-                    }}
-                >
-                    {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </button>
-
-                {children}
-            </div>
+          {/* Replace text brand with logo */}
+          <div className="shrink-0 flex items-center">
+            <Image
+              src="/logo.png"
+              alt="Storya logo"
+              width={96}
+              height={24}
+              priority
+              className="h-6 w-auto object-contain"
+            />
+          </div>
         </div>
-    )
+      </header>
+
+      {/* Fixed sidebar below header */}
+      <aside
+        className={`
+          fixed left-0 top-12 bottom-0 z-40
+          overflow-hidden border-r border-primary/20
+          bg-card/95 backdrop-blur-md
+          transition-all duration-300 ease-in-out
+          ${isOpen ? "w-[240px]" : "w-0"}
+        `}
+        aria-hidden={!isOpen}
+      >
+        <div className="h-full overflow-y-auto p-3 min-w-[240px]">
+          <ProfileCard />
+          <CategoryFilter />
+        </div>
+      </aside>
+
+      {/* Content area (offset by fixed header) */}
+      <main className="pt-12 transition-[padding-left] duration-300 ease-in-out" style={{ paddingLeft: isOpen ? 240 : 0 }}>
+        {children}
+      </main>
+    </div>
+  )
 }

@@ -18,7 +18,6 @@ export default function MainBoard() {
   const supabase = supabaseRef.current
   const router = useRouter()
   const [threads, setThreads] = useState([])
-  const [categoryRows, setCategoryRows] = useState([]) // <-- add this
   const [selectedThreadId, setSelectedThreadId] = useState(null)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
@@ -55,10 +54,6 @@ export default function MainBoard() {
           return
         }
 
-        if (categoriesError) {
-          toast.error(categoriesError.message)
-        }
-
         const threadsData = threadRows || []
         const authorIds = [...new Set(threadsData.map((t) => t.author_id).filter(Boolean))]
 
@@ -80,7 +75,6 @@ export default function MainBoard() {
         }
 
         if (!active) return
-        setCategoryRows(categoriesData || []) // <-- keep categories for ThreadCard
         setThreads(
           threadsData.map((t) => ({
             ...t,
@@ -108,10 +102,12 @@ export default function MainBoard() {
   const filteredThreads = useMemo(() => {
     let result = threads
 
+    // Apply category filter (empty set = show all)
     if (selectedCategories.size > 0) {
-      result = result.filter((t) => selectedCategories.has(String(t.category_id))) // <-- normalize to string
+      result = result.filter((t) => selectedCategories.has(t.category_id))
     }
 
+    // Apply search filter
     const q = search.trim().toLowerCase()
     if (q) {
       result = result.filter((t) =>
@@ -174,7 +170,6 @@ export default function MainBoard() {
                     <ThreadCard
                       key={thread.id}
                       thread={thread}
-                      categories={categoryRows}
                       authorName={thread.author_username}
                       onOpen={handleOpenThread}
                       upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
