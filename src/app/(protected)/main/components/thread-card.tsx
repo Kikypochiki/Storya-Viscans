@@ -25,6 +25,7 @@ type ThreadCardProps = {
     image_urls?: string[]
     image_prices?: number[] | null
     category_id?: string | number | null
+    rfs?: string | null
   }
   categories?: CategoryRow[]
   onOpen?: (id: string) => void
@@ -108,7 +109,7 @@ export function ThreadCard({
         )}
 
         {hasImages && (
-          <div className="relative mt-3 w-full aspect-video overflow-hidden rounded-md border border-[#3e3f40]">
+          <div className="relative mt-3 w-full aspect-video overflow-hidden rounded-md border border-secondary/30">
             <Image
               src={thread.image_urls![0]}
               alt={thread.title}
@@ -123,7 +124,7 @@ export function ThreadCard({
               </div>
             )}
             {categoryLabel?.toLowerCase() === "buy and sell" && thread.image_prices?.[0] !== undefined && (
-              <div className="absolute bottom-2 left-2 bg-green-600/90 text-white px-2 py-1 rounded text-xs font-bold shadow-md">
+              <div className="absolute top-4 right-4 bg-[#3b82f6] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
                 ₱{thread.image_prices[0]}
               </div>
             )}
@@ -131,16 +132,27 @@ export function ThreadCard({
         )}
 
         {categoryLabel?.toLowerCase() === "buy and sell" && (
-          <Button
-            size="sm"
-            className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs transition-all active:scale-95"
-            onClick={(e) => {
-              e.stopPropagation()
-              toast.info("Sending offer feature coming soon!")
-            }}
-          >
-            Send Offer
-          </Button>
+          <div className="mt-3 space-y-3">
+            {thread.rfs && (
+              <div className="rounded-lg bg-[#eef5ff] border-l-4 border-[#3b82f6] p-3 shadow-sm">
+                <h3 className="text-[9px] font-bold uppercase tracking-wider text-[#3b82f6] mb-0.5">
+                  REASON FOR SELLING (RFS)
+                </h3>
+                <p className="text-xs font-medium text-gray-700 truncate">
+                  {thread.rfs}
+                </p>
+              </div>
+            )}
+            <Button
+              className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white h-10 font-bold shadow-md transition-all active:scale-[0.98] rounded-xl text-xs"
+              onClick={(e) => {
+                e.stopPropagation()
+                toast.info("Sending offer...")
+              }}
+            >
+              Send Offer
+            </Button>
+          </div>
         )}
 
         <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
