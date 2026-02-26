@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import type { Comments } from "@/types"
+import { AddComment } from "../components/add-comment"
 import Image from "next/image"
 
 type CommentNode = {
@@ -424,6 +425,9 @@ export default function ThreadContentPage() {
                             onSuccess={fetchComments}
                         />
                         </div>
+                    </>
+                    )}
+                </CardContent>
                     </div>
                 </section>
 
