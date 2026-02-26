@@ -18,6 +18,7 @@ export default function MainBoard() {
   const supabase = supabaseRef.current
   const router = useRouter()
   const [threads, setThreads] = useState([])
+  const [categories, setCategories] = useState([])
   const [selectedThreadId, setSelectedThreadId] = useState(null)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
@@ -52,6 +53,10 @@ export default function MainBoard() {
         if (threadsError) {
           toast.error(threadsError.message)
           return
+        }
+
+        if (categoriesData) {
+          setCategories(categoriesData)
         }
 
         const threadsData = threadRows || []
@@ -170,6 +175,7 @@ export default function MainBoard() {
                     <ThreadCard
                       key={thread.id}
                       thread={thread}
+                      categories={categories}
                       authorName={thread.author_username}
                       onOpen={handleOpenThread}
                       upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
