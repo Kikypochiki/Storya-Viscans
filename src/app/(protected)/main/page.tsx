@@ -13,6 +13,7 @@ import { ThreadCard } from "./components/thread-card"
 import { Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ProfileCard } from "./components/profile-card"
 
 export default function MainBoard() {
   const supabaseRef = useRef(createClient())
@@ -94,59 +95,65 @@ export default function MainBoard() {
 
   return (
     <div className="min-h-screen flex justify-center">
-      <div className="w-full max-w-6xl px-4 md:px-6 py-4 md:py-6">
-        <main className="flex flex-col gap-4">
-          {/* Top bar */}
-          <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">Threads</h1>
-              <p className="text-sm text-muted-foreground">Browse and join discussions</p>
-            </div>
-            <AddThread />
-          </section>
+      <div className="w-full max-w-7xl px-4 md:px-6 py-4 md:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
+          <main className="min-w-0 flex flex-col gap-4">
+            {/* Top bar */}
+            <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h1 className="text-xl font-semibold tracking-tight">Threads</h1>
+                <p className="text-sm text-muted-foreground">Browse and join discussions</p>
+              </div>
+              <AddThread />
+            </section>
 
-          {/* Search */}
-          <section className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search threads..."
-              className="pl-9"
-            />
-          </section>
+            {/* Search */}
+            <section className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search threads..."
+                className="pl-9"
+              />
+            </section>
 
-          {/* Thread list */}
-          <ScrollArea className="h-[calc(100vh-12rem)] pr-2">
-            <div className="flex flex-col gap-3">
-              {loading ? (
-                <Card>
-                  <CardContent className="p-4 text-sm text-muted-foreground">
-                    Loading threads...
-                  </CardContent>
-                </Card>
-              ) : filteredThreads.length === 0 ? (
-                <Card>
-                  <CardContent className="p-4 text-sm text-muted-foreground">
-                    No threads found.
-                  </CardContent>
-                </Card>
-              ) : (
-                filteredThreads.map((thread) => (
-                  <ThreadCard
-                    key={thread.id}
-                    thread={thread}
-                    authorName={thread.author_username}
-                    onOpen={handleOpenThread}
-                    upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
-                    downvotes={thread.downvotes_count ?? thread.downvotes ?? 0}
-                    comments={thread.comments_count ?? thread.comment_count ?? 0}
-                  />
-                ))
-              )}
-            </div>
-          </ScrollArea>
-        </main>
+            {/* Thread list */}
+            <ScrollArea className="h-[calc(100vh-12rem)] pr-2">
+              <div className="flex flex-col gap-3">
+                {loading ? (
+                  <Card>
+                    <CardContent className="p-4 text-sm text-muted-foreground">
+                      Loading threads...
+                    </CardContent>
+                  </Card>
+                ) : filteredThreads.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-4 text-sm text-muted-foreground">
+                      No threads found.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  filteredThreads.map((thread) => (
+                    <ThreadCard
+                      key={thread.id}
+                      thread={thread}
+                      authorName={thread.author_username}
+                      onOpen={handleOpenThread}
+                      upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
+                      downvotes={thread.downvotes_count ?? thread.downvotes ?? 0}
+                      comments={thread.comments_count ?? thread.comment_count ?? 0}
+                    />
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </main>
+
+          <aside className="hidden lg:block sticky top-6">
+            <ProfileCard />
+          </aside>
+        </div>
       </div>
     </div>
   )
