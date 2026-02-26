@@ -11,6 +11,7 @@ import { toast } from "sonner"
 import { ThreadCard } from "./components/thread-card"
 import { useRouter } from "next/navigation"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { CATEGORY_FILTER_EVENT } from "./components/category-filter"
 
 export default function MainBoard() {
   const supabaseRef = useRef(createClient())
@@ -20,6 +21,18 @@ export default function MainBoard() {
   const [selectedThreadId, setSelectedThreadId] = useState(null)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
+  // selectedCategories: empty set = show all, otherwise filter by these IDs
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set())
+
+  // Listen for category filter events dispatched by CategoryFilter in the sidebar
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      const ids: string[] = e.detail?.selectedIds ?? []
+      setSelectedCategories(new Set(ids))
+    }
+    window.addEventListener(CATEGORY_FILTER_EVENT as any, handler)
+    return () => window.removeEventListener(CATEGORY_FILTER_EVENT as any, handler)
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -29,7 +42,7 @@ export default function MainBoard() {
       try {
         const { data: threadRows, error: threadsError } = await supabase
           .from("threads")
-          .select("id, title, content, created_at, author_id")
+          .select("id, title, content, created_at, author_id, category_id")
           .order("created_at", { ascending: false })
 
         if (threadsError) {
@@ -72,18 +85,34 @@ export default function MainBoard() {
     }
 
     loadThreads()
+
+    const onThreadCreated = () => loadThreads()
+    window.addEventListener("thread:created", onThreadCreated)
+
     return () => {
       active = false
+      window.removeEventListener("thread:created", onThreadCreated)
     }
   }, [])
 
   const filteredThreads = useMemo(() => {
+    let result = threads
+
+    // Apply category filter (empty set = show all)
+    if (selectedCategories.size > 0) {
+      result = result.filter((t) => selectedCategories.has(t.category_id))
+    }
+
+    // Apply search filter
     const q = search.trim().toLowerCase()
-    if (!q) return threads
-    return threads.filter((t) =>
-      `${t.title || ""} ${t.content || ""}`.toLowerCase().includes(q)
-    )
-  }, [threads, search])
+    if (q) {
+      result = result.filter((t) =>
+        `${t.title || ""} ${t.content || ""}`.toLowerCase().includes(q)
+      )
+    }
+
+    return result
+  }, [threads, search, selectedCategories])
 
   const handleOpenThread = (id: string) => {
     setSelectedThreadId(id)
