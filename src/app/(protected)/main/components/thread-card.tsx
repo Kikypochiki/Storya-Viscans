@@ -45,7 +45,7 @@ export function ThreadCard({
         <div className="min-w-0">
           <h2 className="text-sm font-semibold truncate">{thread.title}</h2>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-            @{authorName || "unknown"}
+            {authorName || "unknown"}
           </p>
         </div>
 
