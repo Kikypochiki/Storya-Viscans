@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import type { Comments } from "@/types"
-import { AddComment } from "../components/add-comment"
+import Image from "next/image"
 
 type CommentNode = {
   id: string
@@ -63,7 +63,7 @@ export default function ThreadContentPage() {
             try {
                 const { data, error } = await supabase
                     .from("threads")
-                    .select("id, title, content, created_at, author_id")
+                    .select("id, title, content, created_at, author_id, image_urls")
                     .eq("id", threadId)
                     .single()
 
@@ -424,9 +424,40 @@ export default function ThreadContentPage() {
                             onSuccess={fetchComments}
                         />
                         </div>
-                    </>
-                    )}
-                </CardContent>
+                    </div>
+                </section>
+
+                <Card className="border-secondary/50 bg-card/95 shadow-sm">
+                    <CardContent className="p-4 md:p-6">
+                        {loading ? (
+                            <p className="text-sm text-secondary-foreground">Loading content...</p>
+                        ) : errorText ? (
+                            <p className="text-sm text-secondary-foreground">{errorText}</p>
+                        ) : (
+                            <ScrollArea className="max-h-[calc(100vh-16rem)] pr-2">
+                                <div className="space-y-6">
+                                    <div className="whitespace-pre-wrap wrap-break-words leading-7 text-sm md:text-base text-foreground">
+                                        {thread?.content}
+                                    </div>
+
+                                    {thread?.image_urls && thread.image_urls.length > 0 && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                            {thread.image_urls.map((url: string, idx: number) => (
+                                                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-primary/10 bg-secondary/10 group">
+                                                    <Image
+                                                        src={url}
+                                                        alt={`${thread.title} - image ${idx + 1}`}
+                                                        fill
+                                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        )}
+                    </CardContent>
                 </Card>
             </div>
 
