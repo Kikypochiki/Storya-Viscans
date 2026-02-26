@@ -15,13 +15,12 @@ export default function LandingPage() {
         }}
       />
 
-      {/* RIGHT HALF — paper style panel */}
+      {/* RIGHT HALF — paper style panel using CSS variable tokens */}
       <div
         className="w-1/2 min-h-screen flex flex-col items-start justify-center px-16 gap-5 relative"
         style={{
           background: "#FDFCF0",
-          /* subtle paper texture via layered shadows and border */
-          boxShadow: "inset 4px 0 24px rgba(0,0,0,0.08)",
+          boxShadow: "inset 4px 0 24px rgba(0,0,0,0.06)",
         }}
       >
         {/* Paper grain overlay */}
@@ -33,18 +32,18 @@ export default function LandingPage() {
           }}
         />
 
-        {/* Ink accent bar */}
+        {/* Ink accent bar — --primary */}
         <div
           className="w-10 h-1 rounded-full mb-1"
-          style={{ background: "oklch(0.5338 0.1262 143.7998)" }}
+          style={{ background: "var(--primary)" }}
         />
 
-        {/* Title group — Welcome to sits tight above the title */}
+        {/* Title group */}
         <div className="flex flex-col gap-0">
           <p
             className="text-xl italic leading-none tracking-wide"
             style={{
-              color: "oklch(0.5338 0.1262 143.7998)",
+              color: "var(--primary)",
               fontFamily: "var(--font-serif)",
             }}
           >
@@ -54,7 +53,7 @@ export default function LandingPage() {
           <h1
             className="text-7xl font-black tracking-tighter leading-tight"
             style={{
-              color: "oklch(0.4345 0.0942 143.7424)",
+              color: "var(--foreground)",
               fontFamily: "var(--font-serif)",
             }}
           >
@@ -62,18 +61,18 @@ export default function LandingPage() {
           </h1>
         </div>
 
-        {/* Ruled-line divider — like notebook paper */}
+        {/* Ruled-line dividers — --border */}
         <div className="w-full flex flex-col gap-2 mt-1">
-          <div style={{ height: "1px", background: "oklch(0.7897 0.1246 128.7309 / 0.40)" }} />
-          <div style={{ height: "1px", background: "oklch(0.7897 0.1246 128.7309 / 0.20)" }} />
+          <div style={{ height: "1px", background: "var(--border)" }} />
+          <div style={{ height: "1px", background: "var(--border)", opacity: 0.5 }} />
         </div>
 
-        {/* Subtitle — muted ink text */}
+        {/* Subtitle — muted-foreground */}
         <div className="flex flex-col gap-2 max-w-sm">
           <p
             className="text-sm leading-relaxed"
             style={{
-              color: "oklch(0.4345 0.0942 143.7424 / 0.75)",
+              color: "var(--muted-foreground)",
               fontFamily: "var(--font-serif)",
             }}
           >
@@ -82,7 +81,7 @@ export default function LandingPage() {
           <p
             className="text-sm leading-relaxed"
             style={{
-              color: "oklch(0.4345 0.0942 143.7424 / 0.75)",
+              color: "var(--muted-foreground)",
               fontFamily: "var(--font-serif)",
             }}
           >
@@ -91,19 +90,19 @@ export default function LandingPage() {
         </div>
 
         {/* Another ruled line */}
-        <div style={{ width: "100%", height: "1px", background: "oklch(0.7897 0.1246 128.7309 / 0.30)" }} />
+        <div style={{ width: "100%", height: "1px", background: "var(--border)", opacity: 0.4 }} />
 
         {/* CTA Buttons */}
         <div className="flex gap-4 mt-2">
-          {/* Login — outlined ink style */}
+          {/* Login — outlined, uses --primary border + --foreground text */}
           <Button
             variant="outline"
             size="lg"
             asChild
             className="text-lg px-16 py-2 rounded-md font-semibold"
             style={{
-              borderColor: "oklch(0.5338 0.1262 143.7998)",
-              color: "oklch(0.4345 0.0942 143.7424)",
+              borderColor: "var(--primary)",
+              color: "var(--foreground)",
               background: "transparent",
               fontFamily: "var(--font-serif)",
             }}
@@ -111,14 +110,14 @@ export default function LandingPage() {
             <a href="/login">Login</a>
           </Button>
 
-          {/* Signup — solid ink stamp style */}
+          {/* Signup — solid --primary fill */}
           <Button
             size="lg"
             asChild
             className="text-lg px-16 py-2 rounded-md font-bold hover:opacity-90"
             style={{
-              background: "oklch(0.5338 0.1262 143.7998)",
-              color: "#FDFCF0",
+              background: "var(--primary)",
+              color: "var(--primary-foreground)",
               fontFamily: "var(--font-serif)",
             }}
           >
