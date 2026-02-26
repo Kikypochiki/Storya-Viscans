@@ -23,6 +23,8 @@ export function AddThread() {
   const [submitting, setSubmitting] = React.useState(false)
   const [imageFiles, setImageFiles] = React.useState<File[]>([])
   const [previews, setPreviews] = React.useState<string[]>([])
+  const [imagePrices, setImagePrices] = React.useState<string[]>([])
+  const [rfs, setRfs] = React.useState("")
 
   const { categories, loading: loadingCategories } = useCategories()
   const [categoryId, setCategoryId] = React.useState("")
@@ -38,6 +40,7 @@ export function AddThread() {
 
     const newPreviews = files.map((file) => URL.createObjectURL(file))
     setPreviews((prev) => [...prev, ...newPreviews])
+    setImagePrices((prev) => [...prev, ...files.map(() => "")])
   }
 
   const removeImage = (index: number) => {
@@ -48,6 +51,7 @@ export function AddThread() {
       URL.revokeObjectURL(prev[index])
       return newPreviews
     })
+    setImagePrices((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,6 +69,24 @@ export function AddThread() {
     if (!categoryId) {
       toast.error("Please select a category.")
       return
+    }
+
+    const selectedCategory = categories.find(c => c.id === categoryId)
+    const isBuySell = selectedCategory?.name?.toLowerCase() === "buy and sell"
+
+    if (isBuySell) {
+      if (imageFiles.length === 0) {
+        toast.error("At least one picture is required for Buy and Sell.")
+        return
+      }
+      if (!rfs.trim()) {
+        toast.error("Reason for Selling (RFS) is mandatory for Buy and Sell.")
+        return
+      }
+      if (imagePrices.some(p => !p.trim())) {
+        toast.error("Please provide a price for each picture.")
+        return
+      }
     }
 
     setSubmitting(true)
@@ -119,7 +141,9 @@ export function AddThread() {
         content: cleanContent,
         author_id: profile.id,
         category_id: categoryId,
-        image_urls: uploadedUrls, // Assuming array support
+        image_urls: uploadedUrls,
+        image_prices: isBuySell ? imagePrices.map(p => parseFloat(p)) : null,
+        rfs: isBuySell ? rfs : null,
       })
 
       if (insertError) {
@@ -133,6 +157,8 @@ export function AddThread() {
       setCategoryId("")
       setImageFiles([])
       setPreviews([])
+      setImagePrices([])
+      setRfs("")
       setOpen(false)
       window.dispatchEvent(new Event("thread:created"))
     } finally {
@@ -174,31 +200,71 @@ export function AddThread() {
               required
               disabled={submitting}
               placeholder="Write your discussion here..."
-              className="flex min-h-[300px] w-full border-x-0 border-t-0 border-b border-[#3e3f40] bg-[#18191a] px-4 py-3 text-sm ring-offset-background placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-0 resize-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex min-h-[200px] w-full border-x-0 border-t-0 border-b border-[#3e3f40] bg-[#18191a] px-4 py-3 text-sm ring-offset-background placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-0 resize-none disabled:cursor-not-allowed disabled:opacity-50"
             />
+            {categories.find(c => c.id === categoryId)?.name?.toLowerCase() === "buy and sell" && (
+              <div className="p-4 bg-[#2c2d2e] border-b border-[#3e3f40]">
+                <label htmlFor="rfs" className="block text-sm font-medium text-gray-400 mb-2">
+                  Reason for Selling (RFS) *
+                </label>
+                <textarea
+                  id="rfs"
+                  value={rfs}
+                  onChange={(e) => setRfs(e.target.value)}
+                  placeholder="Explain why you are selling this item..."
+                  className="flex min-h-[100px] w-full rounded-md border border-[#3e3f40] bg-[#18191a] px-3 py-2 text-sm placeholder:text-gray-500 focus-visible:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  required
+                />
+              </div>
+            )}
           </div>
 
           {/* Image Upload Area */}
           <div className="bg-[#18191a] px-4 py-2 border-b border-[#3e3f40]">
             <div className="flex flex-wrap gap-2 mb-2">
               {previews.map((preview, index) => (
-                <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-[#3e3f40]">
-                  <Image
-                    src={preview}
-                    alt={`Preview ${index}`}
-                    fill
-                    className="object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 bg-black/50 hover:bg-black/70 rounded-full p-1 text-white transition-colors"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                <div key={index} className="flex flex-col gap-1">
+                  <div className="relative w-24 h-24 rounded-md overflow-hidden border border-[#3e3f40]">
+                    <Image
+                      src={preview}
+                      alt={`Preview ${index}`}
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-black/50 hover:bg-black/70 rounded-full p-1 text-white transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                  {categories.find(c => c.id === categoryId)?.name?.toLowerCase() === "buy and sell" && (
+                    <Input
+                      type="number"
+                      placeholder="Price"
+                      value={imagePrices[index]}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        // Allow only numbers and one decimal point
+                        if (/^\d*\.?\d*$/.test(val) || val === "") {
+                          const newPrices = [...imagePrices]
+                          newPrices[index] = val
+                          setImagePrices(newPrices)
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent 'e', '+', '-', '.' (if already has one)
+                        if (["e", "E", "+", "-"].includes(e.key)) {
+                          e.preventDefault()
+                        }
+                      }}
+                      className="h-8 text-xs bg-[#18191a] border-[#3e3f40] w-24"
+                    />
+                  )}
                 </div>
               ))}
-              <label className="flex flex-col items-center justify-center w-20 h-20 rounded-md border-2 border-dashed border-[#3e3f40] hover:border-blue-500 transition-colors cursor-pointer text-gray-400 hover:text-blue-500">
+              <label className="flex flex-col items-center justify-center w-24 h-24 rounded-md border-2 border-dashed border-[#3e3f40] hover:border-blue-500 transition-colors cursor-pointer text-gray-400 hover:text-blue-500">
                 <ImagePlus className="w-6 h-6" />
                 <span className="text-[10px] mt-1">Add Image</span>
                 <input

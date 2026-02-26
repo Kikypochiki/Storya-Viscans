@@ -1,18 +1,18 @@
 "use client"
 
 import React from "react"
-import { ArrowLeft, ThumbsUp, ThumbsDown, ChevronRight, ChevronDown } from "lucide-react"
+import { ArrowLeft, ThumbsUp, ThumbsDown, ChevronRight, ChevronDown, MessageCircle } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+    CarouselNext,
+    CarouselPrevious,
 } from "@/components/ui/carousel"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
@@ -21,18 +21,18 @@ import { AddComment } from "../components/add-comment"
 import Image from "next/image"
 
 type CommentNode = {
-  id: string
-  content: string
-  created_at: string
-  author_id: string
-  author_username: string
-  parent_id: string | null
-  children: CommentNode[]
+    id: string
+    content: string
+    created_at: string
+    author_id: string
+    author_username: string
+    parent_id: string | null
+    children: CommentNode[]
 }
 
 function formatCount(n: number) {
-  if (!n) return "0"
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n)
+    if (!n) return "0"
+    return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n)
 }
 
 export default function ThreadContentPage() {
@@ -77,7 +77,7 @@ export default function ThreadContentPage() {
             try {
                 const { data, error } = await supabase
                     .from("threads")
-                    .select("id, title, content, created_at, author_id, image_urls")
+                    .select("id, title, content, created_at, author_id, image_urls, image_prices, rfs, category_id")
                     .eq("id", threadId)
                     .single()
 
@@ -90,22 +90,15 @@ export default function ThreadContentPage() {
                     return
                 }
 
-                setThread(data)
-
-                if (data.author_id) {
-                    const { data: profileRow, error: profileError } = await supabase
-                        .from("profiles")
-                        .select("username")
-                        .eq("id", data.author_id)
-                        .maybeSingle()
-
-                    if (!profileError && profileRow?.username) {
-                        setAuthorUsername(profileRow.username)
-                    } else {
-                        setAuthorUsername("unknown")
-                    }
+                if (data.category_id) {
+                    const { data: catData } = await supabase
+                        .from("categories")
+                        .select("name")
+                        .eq("id", data.category_id)
+                        .single()
+                    setThread({ ...data, category_name: catData?.name })
                 } else {
-                    setAuthorUsername("unknown")
+                    setThread(data)
                 }
             } catch (err: any) {
                 if (active) {
@@ -379,90 +372,122 @@ export default function ThreadContentPage() {
     return (
         <div className="min-h-screen flex justify-center bg-linear-to-b from-secondary/20 via-background to-background">
             <div className="w-full max-w-4xl px-4 py-4 md:px-6 md:py-6 flex flex-col gap-4">
-            <div>
-                <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => router.back()}
-                aria-label="Back"
-                className="mb-3 text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
-                >
-                <ArrowLeft className="h-5 w-5" />
-                </Button>
+                <div>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.back()}
+                        aria-label="Back"
+                        className="mb-3 text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
 
-                <Card className="border-secondary/50 bg-card/95 shadow-sm">
-                <CardContent className="p-4 md:p-6">
-                    {loading ? (
-                    <p className="text-sm text-secondary-foreground">Loading content...</p>
-                    ) : errorText ? (
-                    <p className="text-sm text-secondary-foreground">{errorText}</p>
-                    ) : (
-                    <>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-primary/80 mb-2">
-                        Thread
-                        </p>
-                        <h1 className="text-lg md:text-xl font-bold text-primary mb-2">
-                        {thread?.title || "Thread"}
-                        </h1>
-                        {!loading && !errorText ? (
-                        <p className="text-xs text-secondary-foreground/90 mb-4">
-                            @{authorUsername} {createdAt ? `• ${createdAt}` : ""}
-                        </p>
-                        ) : null}
-
-                        {thread?.image_urls?.length > 0 && (
-                          <div className="mb-4">
-                            <Carousel className="w-full">
-                              <CarouselContent>
-                                {thread.image_urls.map((url: string, idx: number) => (
-                                  <CarouselItem key={`${thread.id}-img-${idx}`}>
-                                    <div className="relative w-full aspect-video overflow-hidden rounded-md border border-secondary/30">
-                                      <Image
-                                        src={url}
-                                        alt={`${thread?.title || "Thread"} image ${idx + 1}`}
-                                        fill
-                                        className="object-cover"
-                                        sizes="(max-width: 768px) 100vw, 900px"
-                                      />
-                                    </div>
-                                  </CarouselItem>
-                                ))}
-                              </CarouselContent>
-
-                              {thread.image_urls.length > 1 && (
+                    <Card className="border-secondary/50 bg-card/95 shadow-sm">
+                        <CardContent className="p-4 md:p-6">
+                            {loading ? (
+                                <p className="text-sm text-secondary-foreground">Loading content...</p>
+                            ) : errorText ? (
+                                <p className="text-sm text-secondary-foreground">{errorText}</p>
+                            ) : (
                                 <>
-                                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10" />
-                                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10" />
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#22c55e] mb-2">
+                                        THREAD
+                                    </p>
+                                    <h1 className="text-2xl font-bold text-[#15803d] mb-1">
+                                        {thread?.title || "Thread"}
+                                    </h1>
+                                    {!loading && !errorText ? (
+                                        <p className="text-xs text-gray-500 mb-6">
+                                            @{authorUsername} • {createdAt}
+                                        </p>
+                                    ) : null}
+
+                                    {thread?.image_urls?.length > 0 && (
+                                        <div className="mb-4">
+                                            <Carousel className="w-full">
+                                                <CarouselContent>
+                                                    {thread.image_urls.map((url: string, idx: number) => (
+                                                        <CarouselItem key={`${thread.id}-img-${idx}`}>
+                                                            <div className="space-y-3">
+                                                                <div className="relative w-full aspect-video overflow-hidden rounded-md border border-secondary/30">
+                                                                    <Image
+                                                                        src={url}
+                                                                        alt={`${thread?.title || "Thread"} image ${idx + 1}`}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                        sizes="(max-width: 768px) 100vw, 900px"
+                                                                    />
+                                                                    {thread.category_name?.toLowerCase() === "buy and sell" && thread.image_prices?.[idx] !== undefined && (
+                                                                        <div className="absolute top-4 right-4 bg-[#3b82f6] text-white px-4 py-1.5 rounded-full text-base font-bold shadow-lg">
+                                                                            ₱{thread.image_prices[idx]}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {thread.category_name?.toLowerCase() === "buy and sell" && (
+                                                                    <Button
+                                                                        className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white h-11 font-bold shadow-md transition-all active:scale-[0.98] rounded-xl"
+                                                                        onClick={() => toast.info(`Sending offer...`)}
+                                                                    >
+                                                                        Send Offer
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </CarouselItem>
+                                                    ))}
+                                                </CarouselContent>
+
+                                                {thread.image_urls.length > 1 && (
+                                                    <>
+                                                        <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10" />
+                                                        <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10" />
+                                                    </>
+                                                )}
+                                            </Carousel>
+                                        </div>
+                                    )}
+
+                                    {thread?.category_name?.toLowerCase() === "buy and sell" && thread?.rfs && (
+                                        <div className="mb-6 rounded-lg bg-[#eef5ff] border-l-4 border-[#3b82f6] p-4 shadow-sm">
+                                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[#3b82f6] mb-1">
+                                                REASON FOR SELLING (RFS)
+                                            </h3>
+                                            <p className="text-sm font-medium text-gray-700">
+                                                {thread.rfs}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <ScrollArea className="max-h-[calc(100vh-16rem)] pr-2 mb-4">
+                                        <div className="whitespace-pre-wrap warp-break-words leading-7 text-sm md:text-base text-foreground">
+                                            {thread?.content}
+                                        </div>
+                                    </ScrollArea>
+                                    <div className="flex items-center gap-8 pt-6 border-t border-secondary/30">
+                                        <button type="button" className="inline-flex items-center gap-2.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
+                                            <ThumbsUp className="h-4 w-4" />
+                                            Upvote
+                                        </button>
+
+                                        <button type="button" className="inline-flex items-center gap-2.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
+                                            <ThumbsDown className="h-4 w-4" />
+                                            Downvote
+                                        </button>
+
+                                        <AddComment threadId={threadId!} onSuccess={fetchComments} customTrigger={
+                                            <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer ml-auto shadow-sm">
+                                                <MessageCircle className="h-4 w-4" />
+                                                Add Comment
+                                            </div>
+                                        } />
+                                    </div>
                                 </>
-                              )}
-                            </Carousel>
-                          </div>
-                        )}
-
-                        <ScrollArea className="max-h-[calc(100vh-16rem)] pr-2 mb-4">
-                        <div className="whitespace-pre-wrap warp-break-words leading-7 text-sm md:text-base text-foreground">
-                            {thread?.content}
-                        </div>
-                        </ScrollArea>
-                        <div className="flex items-center gap-4 pt-4 border-t border-secondary/30 text-xs text-muted-foreground">
-  <button type="button" aria-label="Upvote" className="inline-flex items-center gap-1 p-0">
-    <ThumbsUp className="h-3.5 w-3.5" />
-    {formatCount(thread?.upvotes_count ?? thread?.upvotes ?? 0)}
-  </button>
-
-  <button type="button" aria-label="Downvote" className="inline-flex items-center gap-1 p-0">
-    <ThumbsDown className="h-3.5 w-3.5" />
-    {formatCount(thread?.downvotes_count ?? thread?.downvotes ?? 0)}
-  </button>
-
-  <AddComment threadId={threadId!} onSuccess={fetchComments} />
-</div>
-                    </>
-                    )}
-                </CardContent>
-                </Card>
-            </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
 
 
                 {!loading && !errorText && comments.length > 0 && (

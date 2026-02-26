@@ -45,7 +45,7 @@ export default function MainBoard() {
           await Promise.all([
             supabase
               .from("threads")
-              .select("id, title, content, created_at, author_id, category_id, image_urls")
+              .select("id, title, content, created_at, author_id, category_id, image_urls, image_prices, rfs")
               .order("created_at", { ascending: false }),
             supabase.from("categories").select("id, name"),
           ])
