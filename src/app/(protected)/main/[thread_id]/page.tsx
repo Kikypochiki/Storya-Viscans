@@ -7,13 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import type { Comments } from "@/types"
@@ -28,11 +21,6 @@ type CommentNode = {
   author_username: string
   parent_id: string | null
   children: CommentNode[]
-}
-
-function formatCount(n: number) {
-  if (!n) return "0"
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n)
 }
 
 export default function ThreadContentPage() {
@@ -57,7 +45,6 @@ export default function ThreadContentPage() {
     const [replyText, setReplyText] = React.useState("")
     const [submittingReply, setSubmittingReply] = React.useState(false)
     const [collapsedComments, setCollapsedComments] = React.useState<Set<string>>(new Set())
-    const [showAllImages, setShowAllImages] = React.useState(false)
 
     React.useEffect(() => {
         let active = true
@@ -411,53 +398,33 @@ export default function ThreadContentPage() {
                         </p>
                         ) : null}
 
-                        {thread?.image_urls?.length > 0 && (
-                          <div className="mb-4">
-                            <Carousel className="w-full">
-                              <CarouselContent>
-                                {thread.image_urls.map((url: string, idx: number) => (
-                                  <CarouselItem key={`${thread.id}-img-${idx}`}>
-                                    <div className="relative w-full aspect-video overflow-hidden rounded-md border border-secondary/30">
-                                      <Image
-                                        src={url}
-                                        alt={`${thread?.title || "Thread"} image ${idx + 1}`}
-                                        fill
-                                        className="object-cover"
-                                        sizes="(max-width: 768px) 100vw, 900px"
-                                      />
-                                    </div>
-                                  </CarouselItem>
-                                ))}
-                              </CarouselContent>
-
-                              {thread.image_urls.length > 1 && (
-                                <>
-                                  <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10" />
-                                  <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10" />
-                                </>
-                              )}
-                            </Carousel>
-                          </div>
-                        )}
-
                         <ScrollArea className="max-h-[calc(100vh-16rem)] pr-2 mb-4">
                         <div className="whitespace-pre-wrap warp-break-words leading-7 text-sm md:text-base text-foreground">
                             {thread?.content}
                         </div>
                         </ScrollArea>
-                        <div className="flex items-center gap-4 pt-4 border-t border-secondary/30 text-xs text-muted-foreground">
-  <button type="button" aria-label="Upvote" className="inline-flex items-center gap-1 p-0">
-    <ThumbsUp className="h-3.5 w-3.5" />
-    {formatCount(thread?.upvotes_count ?? thread?.upvotes ?? 0)}
-  </button>
-
-  <button type="button" aria-label="Downvote" className="inline-flex items-center gap-1 p-0">
-    <ThumbsDown className="h-3.5 w-3.5" />
-    {formatCount(thread?.downvotes_count ?? thread?.downvotes ?? 0)}
-  </button>
-
-  <AddComment threadId={threadId!} onSuccess={fetchComments} />
-</div>
+                        <div className="flex gap-2 pt-4 border-t border-secondary/30">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-foreground"
+                        >
+                            <ThumbsUp className="h-4 w-4 mr-2" />
+                            Upvote
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-foreground"
+                        >
+                            <ThumbsDown className="h-4 w-4 mr-2" />
+                            Downvote
+                        </Button>
+                        <AddComment
+                            threadId={threadId!}
+                            onSuccess={fetchComments}
+                        />
+                        </div>
                     </>
                     )}
                 </CardContent>
