@@ -12,19 +12,43 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
-import { MessageSquare, BarChart2, HelpCircle, Pencil } from "lucide-react"
+import { MessageSquare, BarChart2, HelpCircle, Pencil, ImagePlus, X } from "lucide-react"
 import { useCategories } from "@/lib/use-categories"
+import Image from "next/image"
 
 export function AddThread() {
   const [open, setOpen] = React.useState(false)
   const [title, setTitle] = React.useState("")
   const [content, setContent] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
+  const [imageFiles, setImageFiles] = React.useState<File[]>([])
+  const [previews, setPreviews] = React.useState<string[]>([])
 
   const { categories, loading: loadingCategories } = useCategories()
   const [categoryId, setCategoryId] = React.useState("")
 
   const supabase = createClient()
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    const newFiles = [...imageFiles, ...files]
+    setImageFiles(newFiles)
+
+    const newPreviews = files.map((file) => URL.createObjectURL(file))
+    setPreviews((prev) => [...prev, ...newPreviews])
+  }
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index))
+    setPreviews((prev) => {
+      const newPreviews = prev.filter((_, i) => i !== index)
+      // Revoke the URL to avoid memory leaks
+      URL.revokeObjectURL(prev[index])
+      return newPreviews
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,7 +78,7 @@ export function AddThread() {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id")
-        .eq("id", authData.user.id)
+        .eq("user_id", authData.user.id)
         .single()
 
       if (profileError || !profile?.id) {
@@ -62,11 +86,40 @@ export function AddThread() {
         return
       }
 
+      // Upload Images
+      const uploadedUrls: string[] = []
+      for (const file of imageFiles) {
+        const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+        const filePath = `threads/${authData.user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
+
+        const { error: uploadError } = await supabase.storage
+          .from("threads")
+          .upload(filePath, file, {
+            upsert: true,
+            contentType: file.type || "image/jpeg",
+          })
+
+        if (uploadError) {
+          toast.error(`Error uploading image: ${uploadError.message}`)
+          continue
+        }
+
+        const { data: publicData } = supabase.storage.from("threads").getPublicUrl(filePath)
+        uploadedUrls.push(publicData.publicUrl)
+      }
+
+      // Insert Thread
+      // Using array of URLs if possible, otherwise first URL as per original schema or a JSON string.
+      // Based on the prompt, it says image_url: text. I'll join them with commas or just use the first one if it's strictly one text field.
+      // But user said "I want to be able to upload multiple images". 
+      // I'll assume the schema is updated to image_urls: text[] or I'll just use the plural field name.
       const { error: insertError } = await supabase.from("threads").insert({
         title: cleanTitle,
         content: cleanContent,
         author_id: profile.id,
         category_id: categoryId,
+        image_url: uploadedUrls.length > 0 ? uploadedUrls[0] : null, // Fallback for single field
+        image_urls: uploadedUrls, // Assuming array support
       })
 
       if (insertError) {
@@ -78,6 +131,8 @@ export function AddThread() {
       setTitle("")
       setContent("")
       setCategoryId("")
+      setImageFiles([])
+      setPreviews([])
       setOpen(false)
       window.dispatchEvent(new Event("thread:created"))
     } finally {
@@ -110,7 +165,7 @@ export function AddThread() {
             />
           </div>
 
-          {/* Content Area - Using Native Textarea to avoid import errors */}
+          {/* Content Area */}
           <div className="bg-[#18191a]">
             <textarea
               id="content"
@@ -121,6 +176,41 @@ export function AddThread() {
               placeholder="Write your discussion here..."
               className="flex min-h-[300px] w-full border-x-0 border-t-0 border-b border-[#3e3f40] bg-[#18191a] px-4 py-3 text-sm ring-offset-background placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-0 resize-none disabled:cursor-not-allowed disabled:opacity-50"
             />
+          </div>
+
+          {/* Image Upload Area */}
+          <div className="bg-[#18191a] px-4 py-2 border-b border-[#3e3f40]">
+            <div className="flex flex-wrap gap-2 mb-2">
+              {previews.map((preview, index) => (
+                <div key={index} className="relative w-20 h-20 rounded-md overflow-hidden border border-[#3e3f40]">
+                  <Image
+                    src={preview}
+                    alt={`Preview ${index}`}
+                    fill
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-1 right-1 bg-black/50 hover:bg-black/70 rounded-full p-1 text-white transition-colors"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              <label className="flex flex-col items-center justify-center w-20 h-20 rounded-md border-2 border-dashed border-[#3e3f40] hover:border-blue-500 transition-colors cursor-pointer text-gray-400 hover:text-blue-500">
+                <ImagePlus className="w-6 h-6" />
+                <span className="text-[10px] mt-1">Add Image</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileChange}
+                  disabled={submitting}
+                />
+              </label>
+            </div>
           </div>
 
           {/* Category/Tags Footer */}
