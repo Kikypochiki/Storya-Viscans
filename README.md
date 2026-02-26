@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🎙️ StoryaViscans
 
-## Getting Started
+A community-driven platform for Viscans to share stories, engage in social discussions, and access academic resources.
 
-First, run the development server:
+💡 The Problem
+While groups like "Storya sa Biska" on Facebook prove there is a massive hunger for community sharing at VSU, relying on global social media creates three critical failures:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+        ⚠️ Information Overload: Vital university announcements are buried under "shitposting," memes, and irrelevant content.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+        🔒 Lack of Privacy: Sensitive campus-specific discussions are exposed to a global audience, losing the "safe space" feel.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+        📂 No Central Archive: Important student-led discussions or localized news disappear within hours due to the Facebook algorithm.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+    StoryaViscans solves this by providing a dedicated, organized, and searchable home for all things VSU.
 
-## Learn More
+✨ Key Features
+🏫 Campus-Specific Channels: Categorized boards for Academic Affairs, Orgs, Buy and Sell, Lost and Found, and "Secret Spilling" (Confessions).
 
-To learn more about Next.js, take a look at the following resources:
+    📢 Verified Announcements: A dedicated "Official" tab for faculty and student council updates to ensure high visibility.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+    🗳️ Community Governance: Upvoting/Downvoting system to prioritize helpful discussions and filter out spam.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+    🌙 Viscan Identity: Profile badges for different colleges (FAFS, FC, FVM, etc.) to foster school spirit.
 
-## Deploy on Vercel
+    📱 Progressive Web App (PWA): Lightweight and accessible via mobile for students with limited data.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+🛠️ Tech Stack
+Category | Tech Stack
+------------|------------
+Frontend | Next.js 16, TypeScript, Tailwind CSS, Shadcn UI
+Backend | Supabase
+Database | Supabase PostgreSQL
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🚀 Getting Started 1. Installation # Clone the repository
+git clone https://github.com/your-username/StoryaViscans.git
+
+        # Navigate to the project directory
+        cd StoryaViscans
+
+        # Install dependencies
+    npm install
+
+    2. Environment Setup
+        Create a .env file in the root directory:
+        NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+        NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+    3. Run the Development Server
+        npm run dev
+
+🚧 Challenges We Faced - Real-time Performance: Optimizing Supabase subscriptions to ensure "Storyas" appear instantly without lagging the UI.
+
+    - Schema Complexity: Designing a relational database structure that handles nested comments and upvote logic efficiently.
+
+    - Inclusive Design: Balancing a modern look with high performance for users on older mobile devices around campus.
+
+📈 What's Next for StoryaViscans? - 🎓 VSU Email OAuth: Restricting posting rights to verified @vsu.edu.ph accounts.
+
+    - 🎟️ Event Ticketing: Built-in RSVP system for VSU anniversary events and college intramurals.
+
+    - 🤖 AI Moderation: Using NLP to automatically flag hate speech or community guideline violations.
+
+                 👥 The Team
+
+| Name | Role |
+| Dohn Michael Varquez | 🏗️ Lead Developer |
+| Gian Carlo Suico | 🎨 Frontend Developer |
+| Martin Benedict Ybas | ⚙️ Backend Developer |
+| Norman John Bandibas | 🗄️ Database Administrator |
