@@ -61,7 +61,7 @@ export function ThreadCard({
       ? categories.find((c) => String(c.id) === String(thread.category_id))
       : undefined
 
-  const categoryLabel = thread.category_name || category?.name || null
+  const categoryLabel = category?.name || null
 
   useEffect(() => {
     let active = true
@@ -164,7 +164,7 @@ export function ThreadCard({
           {categoryLabel && (
             <Badge
               variant="secondary"
-              className="inline-flex h-5 items-center rounded-full px-2.5 text-[10px] font-medium tracking-wide text-secondary-foreground bg-secondary/70 border border-border/60 flex-shrink-0"
+              className="inline-flex h-5 items-center rounded-full px-2.5 text-[10px] font-medium tracking-wide text-secondary-foreground bg-secondary/70 border border-border/60 shrink-0"
             >
               {categoryLabel}
             </Badge>
@@ -187,7 +187,7 @@ export function ThreadCard({
               </div>
             )}
             {categoryLabel?.toLowerCase() === "buy and sell" && thread.image_prices?.[0] !== undefined && (
-              <div className="absolute top-4 right-4 bg-[#3b82f6] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
+              <div className="absolute top-4 right-4 bg-primary text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
                 ₱{thread.image_prices[0]}
               </div>
             )}
@@ -197,8 +197,8 @@ export function ThreadCard({
         {categoryLabel?.toLowerCase() === "buy and sell" && (
           <div className="mt-3 space-y-3">
             {thread.rfs && (
-              <div className="rounded-lg bg-[#eef5ff] border-l-4 border-[#3b82f6] p-3 shadow-sm">
-                <h3 className="text-[9px] font-bold uppercase tracking-wider text-[#3b82f6] mb-0.5">
+              <div className="rounded-lg bg-[#eef5ff] border-l-4 border-primary p-3 shadow-sm">
+                <h3 className="text-[9px] font-bold uppercase tracking-wider text-primary mb-0.5">
                   REASON FOR SELLING (RFS)
                 </h3>
                 <p className="text-xs font-medium text-gray-700 truncate">
@@ -207,7 +207,7 @@ export function ThreadCard({
               </div>
             )}
             <Button
-              className="w-full bg-[#3b82f6] hover:bg-[#2563eb] text-white h-10 font-bold shadow-md transition-all active:scale-[0.98] rounded-xl text-xs"
+              className="w-full bg-primary text-white h-10 font-bold shadow-md transition-all active:scale-[0.98] rounded-xl text-xs"
               onClick={(e) => {
                 e.stopPropagation()
                 toast.info("Sending offer...")
@@ -221,7 +221,7 @@ export function ThreadCard({
         <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
           <button
             type="button"
-            className="inline-flex items-center gap-1 hover:text-primary transition-colors transition-all active:scale-110"
+            className="inline-flex items-center gap-1 hover:text-primary transition-all active:scale-110"
             onClick={(e) => {
               e.stopPropagation()
               handleVote("up")
@@ -232,7 +232,7 @@ export function ThreadCard({
           </button>
           <button
             type="button"
-            className="inline-flex items-center gap-1 hover:text-destructive transition-colors transition-all active:scale-110"
+            className="inline-flex items-center gap-1 hover:text-destructive transition-all active:scale-110"
             onClick={(e) => {
               e.stopPropagation()
               handleVote("down")
