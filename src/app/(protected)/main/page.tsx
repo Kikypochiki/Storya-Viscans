@@ -45,7 +45,7 @@ export default function MainBoard() {
           await Promise.all([
             supabase
               .from("threads")
-              .select("id, title, content, created_at, author_id, category_id, image_urls, image_prices, rfs")
+              .select("id, title, content, created_at, author_id, category_id, image_urls, image_prices, rfs, upvote_count, downvote_count")
               .order("created_at", { ascending: false }),
             supabase.from("categories").select("id, name"),
           ])
@@ -178,8 +178,8 @@ export default function MainBoard() {
                       categories={categories}
                       authorName={thread.author_username}
                       onOpen={handleOpenThread}
-                      upvotes={thread.upvotes_count ?? thread.upvotes ?? 0}
-                      downvotes={thread.downvotes_count ?? thread.downvotes ?? 0}
+                      upvotes={thread.upvote_count ?? 0}
+                      downvotes={thread.downvote_count ?? 0}
                       comments={thread.comments_count ?? thread.comment_count ?? 0}
                     />
                   ))
