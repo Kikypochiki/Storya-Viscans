@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { MessageSquare, BarChart2, HelpCircle, Pencil } from "lucide-react"
+import { useCategories } from "@/lib/use-categories"
 
 export function AddThread() {
   const [open, setOpen] = React.useState(false)
@@ -21,30 +22,10 @@ export function AddThread() {
   const [content, setContent] = React.useState("")
   const [submitting, setSubmitting] = React.useState(false)
 
-  const [categories, setCategories] = React.useState<Array<{ id: string; name: string }>>([])
+  const { categories, loading: loadingCategories } = useCategories()
   const [categoryId, setCategoryId] = React.useState("")
-  const [loadingCategories, setLoadingCategories] = React.useState(false)
 
   const supabase = createClient()
-
-  React.useEffect(() => {
-    const loadCategories = async () => {
-      setLoadingCategories(true)
-      const { data, error } = await supabase
-        .from("categories")
-        .select("id,name")
-        .order("name", { ascending: true })
-
-      if (error) {
-        toast.error(error.message)
-      } else {
-        setCategories((data as Array<{ id: string; name: string }>) || [])
-      }
-      setLoadingCategories(false)
-    }
-
-    loadCategories()
-  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,7 +55,7 @@ export function AddThread() {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id")
-        .eq("user_id", authData.user.id)
+        .eq("id", authData.user.id)
         .single()
 
       if (profileError || !profile?.id) {
@@ -165,7 +146,6 @@ export function AddThread() {
                 ))}
               </select>
             </div>
-            <p className="text-xs text-gray-500 ml-16">Multiple tags may be separated by commas.</p>
           </div>
 
           {/* Action Footer */}

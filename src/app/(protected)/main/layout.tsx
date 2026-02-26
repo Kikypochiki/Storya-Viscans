@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react"
 import { Menu, X } from "lucide-react"
 import { ProfileCard } from "./components/profile-card"
+import { CategoryFilter } from "./components/category-filter"
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -34,6 +35,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
                 {/* Aside body */}
                 <div className="flex-1 overflow-y-auto p-4 min-w-[280px]">
                     <ProfileCard />
+                    <CategoryFilter />
                 </div>
             </aside>
 
