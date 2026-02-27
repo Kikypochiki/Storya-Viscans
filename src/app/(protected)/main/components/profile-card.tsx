@@ -20,14 +20,16 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
+import {CreateProfileDialog} from "./create-profile"
 export function ProfileCard() {
     const router = useRouter()
     const [username, setUsername] = useState("Name")
     const [avatarUrl, setAvatarUrl] = useState("")
+    const [hasProfile, setHasProfile] = useState(false)
     const [showLogoutAlert, setShowLogoutAlert] = useState(false)
     const [logoutError, setLogoutError] = useState("")
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
     useEffect(() => {
         const supabase = createClient()
@@ -36,15 +38,22 @@ export function ProfileCard() {
             const { data: authData } = await supabase.auth.getUser()
             if (!authData?.user) return
 
-            const { data: profile } = await supabase
+            const { data: profile, error } = await supabase
                 .from("profiles")
                 .select("username, avatar_url")
                 .eq("user_id", authData.user.id)
-                .single()
+                .maybeSingle()
+
+            if (error) return
 
             if (profile) {
-                if (profile.username) setUsername(profile.username)
-                if (profile.avatar_url) setAvatarUrl(profile.avatar_url)
+                setHasProfile(true)
+                setUsername(profile.username || "Name")
+                setAvatarUrl(profile.avatar_url || "")
+            } else {
+                setHasProfile(false)
+                setUsername("No profile yet")
+                setAvatarUrl("")
             }
         }
 
@@ -82,51 +91,46 @@ export function ProfileCard() {
             </div>
 
             <Card className="rounded-xl border border-primary/20 bg-card/95 text-card-foreground shadow-sm backdrop-blur">
-                <CardContent className="px-3 py-3 flex items-center gap-3">
-                    <Avatar className="h-10 w-10 shrink-0 ring-2 ring-secondary/60">
-                        <AvatarImage src={avatarUrl} alt={username} />
-                        <AvatarFallback className="bg-secondary text-secondary-foreground">
-                            <User className="h-4 w-4" />
-                        </AvatarFallback>
-                    </Avatar>
+                <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10 shrink-0 ring-2 ring-secondary/60">
+                            <AvatarImage src={avatarUrl} alt={username} />
+                            <AvatarFallback className="bg-secondary text-secondary-foreground">
+                                <User className="h-4 w-4" />
+                            </AvatarFallback>
+                        </Avatar>
 
-                    <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold leading-tight text-primary">
-                            {username}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold leading-tight text-primary">{username}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                {hasProfile ? "Profile" : "No profile yet"}
+                            </p>
+                        </div>
+
+                        {hasProfile && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 rounded-md">
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                    <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        Edit profile
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleLogoutClick} className="text-destructive">
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        Log out
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
                     </div>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 shrink-0 rounded-md text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
-                            >
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40 border-primary/20">
-                            <DropdownMenuItem
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setIsEditDialogOpen(true)
-                                }}
-                                className="cursor-pointer"
-                            >
-                                <Settings className="mr-2 h-4 w-4" />
-                                <span>Edit profile</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={handleLogoutClick}
-                                className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
-                            >
-                                <LogOut className="mr-2 h-4 w-4" />
-                                <span>Log out</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {!hasProfile && (
+                         <CreateProfileDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />
+                    )}
                 </CardContent>
             </Card>
 
