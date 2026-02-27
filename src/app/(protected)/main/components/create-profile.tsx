@@ -95,7 +95,7 @@
     return (
         <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-            <Button variant="outline">Create Profile</Button>
+            <Button className="w-full mt-3">Create Profile</Button>
         </DialogTrigger>
 
         <DialogContent>
